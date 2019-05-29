@@ -14,7 +14,6 @@ import matplotlib as plt
 RUN_ENSAMBLE = False
 
 def model_1(input: int, output: int):
-    model=Sequential()
     input = Input(shape=(input,))
     x = Dense(64, activation = 'relu')(input)
     x = Dense(64, activation = 'relu')(x)
@@ -27,7 +26,6 @@ def model_1(input: int, output: int):
     return model
 
 def model_2(input:int, output: int):
-    model=Sequential()
     input = Input(shape=(input,))
     x = Dense(32, activation = 'relu')(input)
     x = Dense(16, activation = 'relu')(x)
@@ -39,7 +37,6 @@ def model_2(input:int, output: int):
     return model
 
 def model_3(input:int, output: int):
-    model=Sequential()
     input = Input(shape=(input,))
     x = Dense(32, activation = 'relu')(input)
     x = Dense(9, activation = 'sigmoid')(x)
@@ -62,6 +59,7 @@ def ensamble_model(input: int):
 
 if __name__ == "__main__":
     trainX, x_test, trainY, y_test = prepare_data()
+    import pdb; pdb.set_trace()
     output = len(np.unique(y_test))
     model_1 = model_1(trainX.shape[1], output)
     model_1.summary()
@@ -75,9 +73,9 @@ if __name__ == "__main__":
     # print ("Confusion Matrix1")
     # print (cm1)
     
-    model_2 = model_2(trainX.shape[1], output)
-    model_2.summary()
-    model_2 = fit_model(model_2, trainX,trainY,(x_test, y_test),batch_size=50)
+    # model_2 = model_2(trainX.shape[1], output)
+    # model_2.summary()
+    # model_2 = fit_model(model_2, trainX,trainY,(x_test, y_test),batch_size=50)
     # pred=model_2.predict(x_test)
     # pred = np.argmax(pred, axis=1)
     # print(pred)
@@ -86,10 +84,10 @@ if __name__ == "__main__":
     # np.set_printoptions(precision=2)
     # print ("Confusion Matrix2")
     # print (cm2)
-    model_3 = model_3(trainX.shape[1], output)
-    #print(model_3.get_weights())
-    model_3.summary()
-    model_3 = fit_model(model_3, trainX,trainY,(x_test, y_test),batch_size=50)
+    # model_3 = model_3(trainX.shape[1], output)
+    # #print(model_3.get_weights())
+    # model_3.summary()
+    # model_3 = fit_model(model_3, trainX,trainY,(x_test, y_test),batch_size=50)
     # pred=model_3.predict(x_test)
     # pred = np.argmax(pred, axis=1)
     # print(pred)
