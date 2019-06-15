@@ -41,7 +41,7 @@ def prepare_data():
     print("The last column is {0}".format(dataset.columns[-1]))
     last_column_name = dataset.columns[-1]
     x_data, y_data = to_xy(dataset, last_column_name)  #update the last column appropriately. Coressponsing with the last column name
-    x_data = preprocessing.normalize(x_data)
+    #x_data = preprocessing.normalize(x_data)
     trainX, x_test, trainY, y_test =  train_test_split(x_data,y_data,test_size=0.25,random_state=RANDOM_SEED)
     return trainX, x_test, trainY, y_test
 
