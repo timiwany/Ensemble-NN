@@ -16,8 +16,8 @@ FILENAME1 = 'input2.csv'
 RANDOM_SEED = 1000
 
 def save_model(model, path,filename):
-    filename = filename + '.h5'
-    model.save(path+filename)
+    filename = path+'/'+filename + '.h5'
+    model.save(filename)
 
 
 def encode_text_index(df, name):
@@ -32,12 +32,12 @@ def encode_text_index(df, name):
     df[name] = le.fit_transform(df[name])
     return le.classes_
 
-def prepare_data():
+def prepare_data(path: str):
     """
         Reads data from file, and splits it into training and testing data
 
     """
-    dataset =  pd.read_csv(FILENAME, sep=',', decimal=',')
+    dataset =  pd.read_csv(path, sep=',', decimal=',')
     print("The last column is {0}".format(dataset.columns[-1]))
     last_column_name = dataset.columns[-1]
     x_data, y_data = to_xy(dataset, last_column_name)  #update the last column appropriately. Coressponsing with the last column name
@@ -68,10 +68,10 @@ def get_models(folder=''):
 
     return models
 
-def load_models(models):
+def load_models(models, path="models"):
     changed_models = []
     for i in range(len(models)):
-        model=load_model(models[i]) 
+        model=load_model(path+'/'+models[i]) 
         changed_models.append(model)
     return changed_models
         
