@@ -67,7 +67,7 @@ def load_all_models(n_models):
 	return all_models
 # load all models
 n_members = 3
-members = load_all_models(n_members)
+smembers = load_all_models(n_members)
 print('Loaded %d models' % len(members))
 # evaluate the model
 for model in members:
