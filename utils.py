@@ -2,18 +2,18 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.utils import to_categorical
 from keras.models import load_model
+from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
-from keras.optimizers import Adam
+from keras import optimizers
 
-FILENAME = 'normalised1.csv'
-FILENAME1 = 'input2.csv'
-RANDOM_SEED = 1000
+FILENAME = 'morphological.csv'
+RANDOM_SEED = 200
 
 def save_model(model, path,filename):
     filename = path+'/'+filename + '.h5'
@@ -37,27 +37,32 @@ def prepare_data(path: str):
         Reads data from file, and splits it into training and testing data
 
     """
-    dataset =  pd.read_csv(path, sep=',', decimal=',')
+    dataset =  pd.read_csv(FILENAME, sep=',', decimal=',')
     print("The last column is {0}".format(dataset.columns[-1]))
     last_column_name = dataset.columns[-1]
-    x_data, y_data = to_xy(dataset, last_column_name)  #update the last column appropriately. Coressponsing with the last column name
-    #x_data = preprocessing.normalize(x_data)
-    trainX, x_test, trainY, y_test =  train_test_split(x_data,y_data,test_size=0.25,random_state=RANDOM_SEED)
+    x_data, y_data = to_xy(dataset, last_column_name)
+    #x_data, y_data = to_xy(dataset, '1')
+    #trainX, x_test, trainY, y_test =  train_test_split(x_data,y_data,test_size=0.25,random_state=RANDOM_SEED)
+    kfold = KFold(n_splits=15, shuffle=True, random_state=RANDOM_SEED)
+    for train_index,test_index in kfold.split(x_data,y_data):
+        trainX,x_test,trainY,y_test=x_data[train_index],x_data[test_index],y_data[train_index],y_data[test_index]
     return trainX, x_test, trainY, y_test
 
-def fit_model(model, trainX, trainY,validation_data,batch_size,epochs= 50):
+def fit_model(model, trainX, trainY,validation_data,batch_size,epochs):
+    Adam=optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.99, epsilon=1e-08, decay=0.0, amsgrad=False)
+    #sgd = optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.09, nesterov=True)
     model.compile(loss='mean_squared_error',  optimizer='Adam', metrics=['acc'])
     scores=model.fit(trainX, trainY, epochs=epochs,batch_size=batch_size,verbose=2, validation_data=validation_data)
-    print(scores)
     return model
 
-def evalute_model(model, testX, testY, run_ensamble=False):
+def evalute_model(model, testX, testY, run_ensamble=True):
     print("EVALUATING MODEL: {0}".format(model.name))
     if(run_ensamble):
+        Adam=optimizers.Adam(lr=0.5, beta_1=0.9, beta_2=0.999, epsilon=1e-06, decay=0.0, amsgrad=False)
         model.compile(loss='mean_squared_error', optimizer='Adam', metrics=['mae','acc'])
     score = model.evaluate(testX, testY, verbose = 2)
+    print(model.metrics_names)
     return score
-
 def get_models(folder=''):
     if(folder == ''):
         folder = '.'

@@ -1,5 +1,6 @@
 
 import pandas as pd
+import numpy as np
 import seaborn as sn
 import warnings
 from sklearn import model_selection
@@ -7,6 +8,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
 from sklearn.metrics import precision_recall_fscore_support
 import tensorflow as tf
 from keras.utils import to_categorical
@@ -19,11 +21,11 @@ from numpy import dstack
 import os 
 import shutil 
 warnings.filterwarnings('ignore')
-SEED = 1000
+SEED = 200
 # define model
 def fit_model(trainX, trainY,validation_data,batch_size):
 	model = Sequential()
-	model.add(Dense(68, input_dim=28, activation='relu',kernel_initializer='random_uniform',bias_initializer='zeros'))
+	model.add(Dense(68, input_dim=13, activation='relu',kernel_initializer='random_uniform',bias_initializer='zeros'))
 	#model.add(Dense(32, activation='sigmoid',kernel_initializer='random_uniform',))
 	model.add(Dense(1, activation='sigmoid'))
 	Adam=optimizers.Adam(lr=0.01,beta_1=0.9, beta_2=0.999, epsilon=10e-8, decay=0.01, amsgrad=False)
@@ -33,19 +35,19 @@ def fit_model(trainX, trainY,validation_data,batch_size):
 	#print(model.metrics_names)
 	return model
 # create directory for models
-dataset =  pd.read_csv('dwt.csv')
+dataset =  pd.read_csv('morphological.csv')
 x_data=dataset.iloc[:,:-1].values
 print(x_data)
 y_data=dataset.iloc[:,-1].values
 print(y_data)
-trainX, x_test, trainY, y_test = model_selection.train_test_split(x_data,y_data,test_size=0.30,random_state=SEED)
+trainX, x_test, trainY, y_test = model_selection.train_test_split(x_data,y_data,test_size=0.25,random_state=SEED)
 # create directory for models
 dir = 'models'
 if os.path.exists(dir):
     shutil.rmtree(dir)
 os.makedirs('models')
 
-n_members = 3
+n_members = 5
 for i in range(n_members):
 	# fit model
 	model = fit_model(trainX,trainY,(x_test, y_test),batch_size=100)
@@ -66,14 +68,20 @@ def load_all_models(n_models):
 		print('>loaded %s' % filename)
 	return all_models
 # load all models
-n_members = 3
-smembers = load_all_models(n_members)
+n_members = 5
+members = load_all_models(n_members)
 print('Loaded %d models' % len(members))
 # evaluate the model
 for model in members:
 	train_acc = model.evaluate(trainX, trainY, verbose=0)
 	test_acc = model.evaluate(x_test, y_test, verbose=0)
 	print(train_acc, test_acc)
+	pred=model.predict_classes(x_test)
+	cm =  confusion_matrix(y_test, pred)
+	np.set_printoptions(precision=2)
+	print ("Confusion Matrix")
+	print (cm)
+	print(classification_report(y_test, pred))
 # create stacked model input dataset as outputs from the ensemble
 def stacked_dataset(members, inputX):
 	stackX = None
@@ -94,8 +102,9 @@ def fit_stacked_model(members, inputX, inputy):
 	# create dataset for the ensemble
 	stackedX = stacked_dataset(members, inputX)
 	# fit single model
-	model = MLPClassifier((40),activation='logistic', solver='adam', alpha=0.5,batch_size=100, max_iter=200,random_state=SEED, tol=1e-10,
+	model = MLPClassifier(hidden_layer_sizes=(15,7),activation='relu', solver='adam', alpha=0.5,batch_size=100, max_iter=200,random_state=SEED, tol=1e-10,
      verbose=0,momentum=0.9,nesterovs_momentum=True, early_stopping=False, beta_1=0.9, beta_2=0.999, epsilon=1e-06)
+
 	model.fit(stackedX, inputy)
 	return model
 # fit stacked model using the ensemble
@@ -111,4 +120,5 @@ def stacked_prediction(members, model, inputX):
 res = stacked_prediction(members, model, x_test)
 acc = accuracy_score(y_test, res)
 print('Stacked Test Accuracy: %.5f' % acc)
+print(classification_report(y_test, res))
 print(confusion_matrix(y_test, res))

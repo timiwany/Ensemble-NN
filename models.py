@@ -1,15 +1,18 @@
-from utils import *
-import numpy as np
 import random as rn
-from keras.models import Model
-from keras.layers import Dense, Dropout, Activation, Input, Average
 
+import numpy as np
+from keras.layers import Activation, Average, Dense, Dropout, Input
+from keras.models import Model
+from utils import *
+
+RUN_ENSAMBLE = True
 def model_1(input: int, output: int):
+    model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(64, activation = 'relu')(input)
-    x = Dense(64, activation = 'relu')(x)
-    x =  Dense(32, activation ='sigmoid')(x)
-    x = Dropout(0.5)(x)
+    x = Dense(9, activation = 'tanh')(input)
+    #x = Dense(9, activation = 'tanh')(x)
+    #x =  Dense(32, activation ='tanh')(x)
+    x = Dropout(0.3)(x)
     output = Dense(output, activation = 'softmax')(x)
 
     model = Model(inputs=input, outputs=output, name="MODEL1")
@@ -17,21 +20,23 @@ def model_1(input: int, output: int):
     return model
 
 def model_2(input:int, output: int):
+    model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(32, activation = 'relu')(input)
-    x = Dense(16, activation = 'relu')(x)
-    x = Dropout(0.5)(x)
-    output = Dense(output, activation = 'softmax')(x)
+    x = Dense(9, activation = 'relu')(input)
+    #x = Dense(7, activation = 'sigmoid')(x)
+    x = Dropout(0.1)(x)
+    output = Dense(output, activation = 'sigmoid')(x)
 
     model = Model(inputs=input, outputs=output, name="MODEL2")
 
     return model
 
 def model_3(input:int, output: int):
+    model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(32, activation = 'relu')(input)
-    x = Dense(9, activation = 'sigmoid')(x)
-    x = Dropout(0.5)(x)
+    x = Dense(9, activation = 'relu')(input)
+    #x = Dense(10, activation = 'tanh')(x)
+    x = Dropout(0.2)(x)
     output = Dense(output, activation = 'softmax')(x)
 
     model = Model(inputs=input, outputs=output, name="MODEL3")
