@@ -13,37 +13,33 @@ from sklearn.metrics import classification_report
 from sklearn.ensemble import VotingClassifier
 warnings.filterwarnings('ignore')
 SEED = 200
-dataset =  pd.read_csv('morphological.csv')
-#print(dataset.head(30))
+dataset =  pd.read_csv('spectral.csv')
 x_data=dataset.iloc[:,:-1].values
-#print(x_data)
 y_data=dataset.iloc[:,-1].values
-#print(y_data)
-#trainX, x_test, trainY, y_test = model_selection.train_test_split(x_data,y_data,test_size=0.25,random_state=SEED)
-kfold = KFold(n_splits=5, shuffle=True, random_state=None)
+trainX, x_test, trainY, y_test = model_selection.train_test_split(x_data,y_data,test_size=0.25,random_state=47)
+"""kfold = KFold(n_splits=3, shuffle=True, random_state=SEED)
 for train_index,test_index in kfold.split(x_data,y_data):
-        trainX,x_test,trainY,y_test=x_data[train_index],x_data[test_index],y_data[train_index],y_data[test_index]
+        trainX,x_test,trainY,y_test=x_data[train_index],x_data[test_index],y_data[train_index],y_data[test_index]"""
     
-
 # create the sub models
 estimators = []
-model1= MLPClassifier(activation='relu', alpha=0.01, batch_size=200,
+model1= MLPClassifier(activation='relu', alpha=0.01, batch_size=50,
               beta_1=0.9, beta_2=0.999, early_stopping=False,
-              epsilon=1e-08, hidden_layer_sizes=(18), learning_rate_init=0.5,
+              epsilon=1e-08, hidden_layer_sizes=(9), learning_rate_init=0.001,
               max_iter=500, momentum=0.9,nesterovs_momentum=True, power_t=0.5, random_state=SEED,
               shuffle=True, solver='adam', tol=0.0001,
               validation_fraction=0.1, verbose=False, warm_start=False)
 estimators.append(('nn', model1))
-model2 = MLPClassifier(activation='relu', alpha=0.01, batch_size=200,
+model2 = MLPClassifier(activation='tanh', alpha=0.01, batch_size=50,
               beta_1=0.9, beta_2=0.999, early_stopping=False,
-              epsilon=1e-08, hidden_layer_sizes=(27),learning_rate_init=0.02,
+              epsilon=1e-08, hidden_layer_sizes=(9),learning_rate_init=0.005,
               max_iter=500, momentum=0.9,nesterovs_momentum=True, power_t=0.5, random_state=SEED,
               shuffle=True, solver='adam', tol=0.0001,
               validation_fraction=0.1, verbose=False, warm_start=False)
 estimators.append(('nn1', model2))
-model3 = MLPClassifier(activation='relu', alpha=0.01, batch_size=200,
+model3 = MLPClassifier(activation='logistic', alpha=0.01, batch_size=50,
               beta_1=0.9, beta_2=0.999, early_stopping=False,
-              epsilon=1e-08, hidden_layer_sizes=(35),learning_rate_init=0.1,
+              epsilon=1e-08, hidden_layer_sizes=(9),learning_rate_init=0.002,
               max_iter=500, momentum=0.9,nesterovs_momentum=True, power_t=0.5, random_state=SEED,
               shuffle=True, solver='adam', tol=0.0001,
               validation_fraction=0.1, verbose=False, warm_start=False)
@@ -66,7 +62,7 @@ print(model3.score(trainX, trainY),model3.score(x_test, y_test))
 pred3=model_3.predict(x_test)
 print(confusion_matrix(y_test, pred3))
 print(classification_report(y_test, pred3))
-ensemble = VotingClassifier(estimators)
+ensemble = VotingClassifier(estimators,voting='hard')
 X=ensemble.fit(trainX, trainY)
 predictions = X.predict(x_test)
 accuracy1 = accuracy_score(y_test,predictions)

@@ -9,7 +9,7 @@ from models import *
 from utils import *
 
 
-PATH = 'morphological.csv'
+PATH = 'spectral.csv'
 SEED = 200
 OUTPUT = 2
 
@@ -31,9 +31,8 @@ def stacked_dataset(members, inputX):
 def fit_stacked_model(members, inputX, inputy):
     stackedX = stacked_dataset(members, inputX)
 	# fit single mode
-    model = MLPClassifier((20),activation='logistic', solver='adam', alpha=0.5,batch_size=50, max_iter=500,random_state=SEED, tol=1e-10,
-     verbose=0,momentum=0.9,nesterovs_momentum=True, early_stopping=False, beta_1=0.9, beta_2=0.999, epsilon=1e-06,learning_rate_init=0.01)
-    
+    model =MLPClassifier(hidden_layer_sizes=(40),activation='logistic', solver='adam', alpha=0.5,batch_size=100, max_iter=500,random_state=SEED, tol=1e-10,
+     verbose=0,momentum=0.9,nesterovs_momentum=True, early_stopping=False, beta_1=0.9, beta_2=0.999, epsilon=1e-06)
     model.fit(stackedX, inputy)
     return model
 
@@ -48,12 +47,12 @@ def stacked_prediction(members, model, inputX):
 if __name__ == "__main__":
     trainX, x_test, trainY, y_test = prepare_data(PATH)
     models_to_train = [model_1, model_2, model_3]
-
     compiled_models = []
     for model in models_to_train:
         model = model(trainX.shape[1], OUTPUT)
-        compiled_models.append(fit_model(model,trainX, trainY, (x_test, y_test), batch_size=50, epochs=500))
+        compiled_models.append(fit_model(model,trainX, trainY, validation_split=0.2, batch_size=50, epochs=500))
     for model in compiled_models:
+        #print(model.summary())
         print(evalute_model(model,trainX, trainY))
         print(evalute_model(model, x_test, y_test))
         #print(y_test)
@@ -74,10 +73,9 @@ if __name__ == "__main__":
     stacked_model = fit_stacked_model(loaded_models, trainX, trainY)
 
     # evaluate model on test set
-
     res = stacked_prediction(loaded_models, stacked_model, x_test)
     acc = accuracy_score(y_test, res)
-    print('Stacked Test Accuracy: %.5f' % acc)
+    print('Stacked Test Accuracy: %.8f' % acc)
     pred = np.argmax(res, axis=1)
     print(pred)
     Y_test = np.argmax(y_test, axis=1)

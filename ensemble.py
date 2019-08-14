@@ -16,7 +16,7 @@ RUN_ENSAMBLE = True
 def model_1(input: int, output: int):
     model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(9, activation = 'sigmoid')(input)
+    x = Dense(18, activation = 'sigmoid')(input)
     #x = Dense(9, activation = 'tanh')(x)
     #x =  Dense(32, activation ='tanh')(x)
     x = Dropout(0.3)(x)
@@ -29,7 +29,7 @@ def model_1(input: int, output: int):
 def model_2(input:int, output: int):
     model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(9, activation = 'relu')(input)
+    x = Dense(27, activation = 'relu')(input)
     #x = Dense(7, activation = 'sigmoid')(x)
     x = Dropout(0.1)(x)
     output = Dense(output, activation = 'softmax')(x)
@@ -41,7 +41,7 @@ def model_2(input:int, output: int):
 def model_3(input:int, output: int):
     model=Sequential()
     input = Input(shape=(input,))
-    x = Dense(9, activation = 'tanh')(input)
+    x = Dense(35, activation = 'tanh')(input)
     #x = Dense(10, activation = 'tanh')(x)
     x = Dropout(0.2)(x)
     output = Dense(output, activation = 'softmax')(x)
@@ -62,11 +62,11 @@ def ensamble_model(input: int):
     return ensModel
 
 if __name__ == "__main__":
-    trainX, x_test, trainY, y_test = prepare_data()
+    trainX, x_test, trainY, y_test = prepare_data('dwt.csv')
     output = len(np.unique(y_test))
     model_1 = model_1(trainX.shape[1], output)
     #model_1.summary()
-    model_1 = fit_model(model_1, trainX,trainY,(x_test, y_test),batch_size=100)
+    model_1 = fit_model(model_1, trainX,trainY,(x_test, y_test), epochs=2, batch_size=100)
     
     model_2 = model_2(trainX.shape[1], output)
     #model_2.summary()
