@@ -2,22 +2,23 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn import preprocessing
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.utils import to_categorical
 from keras.models import load_model
-from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
-from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 
 FILENAME = 'dwt.csv'
 SEED = 200
 
 def save_model(model, path,filename):
-    filename = path+'/'+filename + '.h5'
+    filename = os.path.join(path,filename + '.h5')
     model.save(filename)
 
 def encode_text_index(df, name):
@@ -41,27 +42,27 @@ def prepare_data(path: str):
     print("The last column is {0}".format(dataset.columns[-1]))
     last_column_name = dataset.columns[-1]
     x_data, y_data = to_xy(dataset, last_column_name)
-    #pca = PCA(n_components=10)
-    #x_data=pca.fit_transform(x_data)
-    trainX, x_test, trainY, y_test =  train_test_split(x_data,y_data,test_size=0.25,random_state=47) 
-    return trainX, x_test, trainY, y_test
+   
+    return train_test_split(x_data,y_data,test_size=0.25,random_state=47) 
 
-def fit_model(model, trainX, trainY,validation_split,batch_size,epochs, k_fold=True):
-    # if (k_fold):
-    #     gen = ImageDataGenerator()
-    #     # x_train = []
-    #     # y_train = []
-    #     # folds = generate_fold(trainX, trainY)
-    #     # for fold in range(len(folds)):
-    #     #     for f in range(fold):
-    #     #         x_train.append(trainX[f])
-    #     #         y_train.append(trainY[f])
-                
-    #     generator = gen.flow(trainX, trainY, batch_size=16)
-    #     import pdb; pdb.set_trace()
-    #     model.fit_generator(generator,epochs=epochs,verbose=1)
-    #     return model
 
+def get_data_without_encoding(path: str):
+   
+       # Reads data from file, and splits it into training and testing data
+
+    
+    dataset =  pd.read_csv(FILENAME, sep=',', decimal=',')
+    print("The last column is {0}".format(dataset.columns[-1]))
+    last_column_name = dataset.columns[-1]
+    # x_data, y_data = to_xy(dataset, last_column_name)
+    # trainX, x_test, trainY, y_test =  train_test_split(x_data,y_data,test_size=0.25,random_state=47) 
+    return dataset.to_numpy()[:,0 :dataset.shape[1] - 1], dataset.to_numpy()[:,-1]
+
+def train_with_cross_validation(model_function,X, y,  epochs=10, cv=3, batch_size=16):
+        cross_validation_model = KerasClassifier(build_fn=model_function, epochs=epochs, batch_size=batch_size, verbose=1)
+        print(cross_val_score(cross_validation_model, X, y, cv=cv))
+        
+def fit_model(model, trainX, trainY,batch_size=16, epochs=10, validation_split=0.20, k_fold=3):
     Adam=optimizers.Adam(lr=0.1, beta_1=0.9, beta_2=0.99, epsilon=1e-08, decay=0.0, amsgrad=False)
     model.compile(loss='mean_squared_error',  optimizer='Adam', metrics=['acc'])
     scores=model.fit(trainX, trainY, epochs=epochs,batch_size=batch_size,verbose=0, validation_split=validation_split)
@@ -94,7 +95,8 @@ def get_models(folder=''):
 def load_models(models, path="models"):
     changed_models = []
     for i in range(len(models)):
-        model=load_model(path+'/'+models[i]) 
+        model=load_model(os.path.join(path,models[i]))
+        import pdb; pdb.set_trace() 
         changed_models.append(model)
     return changed_models
         
@@ -107,9 +109,8 @@ def encode_text_index(df, name):
 def to_xy(df, target):
     result = []
     for x in df.columns:
-        # import pdb; pdb.set_trace()
         if x != target:
-            result.append(x)s
+            result.append(x)
     # find out the type of the target column.  Is it really this hard? :(
     target_type = df[target].dtypes
     target_type = target_type[0] if hasattr(target_type, '__iter__') else target_type
